@@ -1,6 +1,7 @@
 import requests
 import time
 from parsel import Selector
+from database import create_news
 
 
 # Requisito 1
@@ -72,5 +73,30 @@ def scrape_news(html_content):
 
 # Requisito 5
 def get_tech_news(amount):
-    """Seu código deve vir aqui"""
-    raise NotImplementedError
+    URL_BLOG_TRYBE = "https://blog.betrybe.com/"
+
+    conteudo_url_atual = fetch(URL_BLOG_TRYBE)
+
+    lista_urls_noticias = scrape_updates(conteudo_url_atual)
+
+    while len(lista_urls_noticias) < amount:
+        url_proxima_pagina = scrape_next_page_link(conteudo_url_atual)
+        conteudo_url_atual = fetch(url_proxima_pagina)
+        lista_urls_noticias.extend(scrape_updates(conteudo_url_atual))
+
+    lista_urls_noticias_selecionadas = []
+    index = 0
+
+    while len(lista_urls_noticias_selecionadas) < amount:
+        lista_urls_noticias_selecionadas.append(lista_urls_noticias[index])
+        index += 1
+
+    lista_dicionarios_noticias = []
+
+    for url_noticia_selecionada in lista_urls_noticias_selecionadas:
+        dict_noticia = scrape_news(url_noticia_selecionada)
+        lista_dicionarios_noticias.append(dict_noticia)
+
+    create_news(lista_dicionarios_noticias)
+
+    return lista_dicionarios_noticias

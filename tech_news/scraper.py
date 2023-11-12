@@ -40,8 +40,34 @@ def scrape_next_page_link(html_content):
 
 # Requisito 4
 def scrape_news(html_content):
-    """Seu código deve vir aqui"""
-    raise NotImplementedError
+    selector = Selector(html_content)
+
+    url = selector.css(".pk-share-buttons-wrap::attr(data-share-url)").get()
+    title = selector.css(".entry-title::text").get().strip()
+    timestamp = selector.css(".meta-date::text").get()
+    writer = selector.css(".fn a::text").get().strip()
+
+    reading_time = int(
+        selector.css(".meta-reading-time::text").re_first(r"\d+")
+    )
+
+    summary = "".join(
+        selector.css(".entry-content > p:first-of-type *::text").getall()
+    ).strip()
+
+    category = selector.css(".label::text").get()
+
+    news_data = {
+        "url": url,
+        "title": title,
+        "timestamp": timestamp,
+        "writer": writer,
+        "reading_time": reading_time,
+        "summary": summary,
+        "category": category,
+    }
+
+    return news_data
 
 
 # Requisito 5

@@ -2,7 +2,7 @@ import requests
 import time
 from parsel import Selector
 
-# from tech_news.database import create_news
+from tech_news.database import create_news
 
 
 # Requisito 1
@@ -78,9 +78,22 @@ def get_tech_news(amount):
 
     pag_atual = fetch(URL_BLOG_TRYBE)
 
-    lista_urls_noticias = scrape_updates(pag_atual)
+    urls_noticias = scrape_updates(pag_atual)
 
-    return lista_urls_noticias
+    while len(urls_noticias) < amount:
+        url_proxima_pag = scrape_next_page_link(pag_atual)
+        pag_atual = fetch(url_proxima_pag)
+        urls_noticias.extend(scrape_updates(pag_atual))
 
+    urls_noticias_selecionadas = urls_noticias[:amount]
 
-print(get_tech_news(1))
+    noticias_selecionadas = []
+
+    for url in urls_noticias_selecionadas:
+        pag_noticia = fetch(url)
+        noticia = scrape_news(pag_noticia)
+        noticias_selecionadas.append(noticia)
+
+    create_news(noticias_selecionadas)
+
+    return noticias_selecionadas

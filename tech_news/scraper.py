@@ -1,7 +1,8 @@
 import requests
 import time
 from parsel import Selector
-from tech_news.database import create_news
+
+# from tech_news.database import create_news
 
 
 # Requisito 1
@@ -25,7 +26,7 @@ def fetch(url):
 def scrape_updates(html_content):
     selector = Selector(html_content)
 
-    updates_list = selector.css("a.entry-thumbnail::attr(href)").getall()
+    updates_list = selector.css("div.entry-thumbnail a::attr(href)").getall()
 
     return updates_list
 
@@ -75,28 +76,11 @@ def scrape_news(html_content):
 def get_tech_news(amount):
     URL_BLOG_TRYBE = "https://blog.betrybe.com/"
 
-    conteudo_url_atual = fetch(URL_BLOG_TRYBE)
+    pag_atual = fetch(URL_BLOG_TRYBE)
 
-    lista_urls_noticias = scrape_updates(conteudo_url_atual)
+    lista_urls_noticias = scrape_updates(pag_atual)
 
-    while len(lista_urls_noticias) < amount:
-        url_proxima_pagina = scrape_next_page_link(conteudo_url_atual)
-        conteudo_url_atual = fetch(url_proxima_pagina)
-        lista_urls_noticias.extend(scrape_updates(conteudo_url_atual))
+    return lista_urls_noticias
 
-    lista_urls_noticias_selecionadas = []
-    index = 0
 
-    while len(lista_urls_noticias_selecionadas) < amount:
-        lista_urls_noticias_selecionadas.append(lista_urls_noticias[index])
-        index += 1
-
-    lista_dicionarios_noticias = []
-
-    for url_noticia_selecionada in lista_urls_noticias_selecionadas:
-        dict_noticia = scrape_news(url_noticia_selecionada)
-        lista_dicionarios_noticias.append(dict_noticia)
-
-    create_news(lista_dicionarios_noticias)
-
-    return lista_dicionarios_noticias
+print(get_tech_news(1))
